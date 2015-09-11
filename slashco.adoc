@@ -233,7 +233,7 @@ RETURN item.name, item2.name, instances;
 
 [source, cypher]
 ----
-MATCH (p:Period)-[:OCCURED_IN]-(t:Transaction)-[:CONTAINS]-(i:Item)
+MATCH (p:Period)-[:OCCURRED_IN]-(t:Transaction)-[:CONTAINS]-(i:Item)
 WITH sum(i.price) as sales, p
 ORDER BY sales DESC
 LIMIT 10
@@ -306,13 +306,13 @@ This looks frighteningly similar to our last query, except we’ve added a short
 [source, cypher]
 ----
 MATCH (transction)-[:CONTAINS]-(item),
-(transaction)-[:OCCURED_IN]-(p:Period {period:35})
+(transaction)-[:OCCURRED_IN]-(p:Period {period:35})
 WITH sum(item.price*.05) as globalRoyalty
 MATCH (big_boss:Person {level:6})<-[r:REPORTS_TO*..]-(downStreamers)-[:SOLD]-(transction)-[:CONTAINS]-(item),
-(transaction)-[:OCCURED_IN]-(p:Period {period:35})
+(transaction)-[:OCCURRED_IN]-(p:Period {period:35})
 WITH sum(item.price*.1)+sum(item.wholesalePrice*.5) + globalRoyalty as downStreamGlobal6, big_boss
 MATCH (boss)-[:SOLD]-(transction)-[:CONTAINS]-(item),
-(transaction)-[:OCCURED_IN]-(p:Period {period:35})
+(transaction)-[:OCCURRED_IN]-(p:Period {period:35})
 WITH sum(item.price*.65) + downStreamGlobal6 as tc6, big_boss.name as n6
 RETURN tc6, n6;
 ----
