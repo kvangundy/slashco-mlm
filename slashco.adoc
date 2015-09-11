@@ -22,10 +22,7 @@ In this example, we have sales-mages who will both sell products directly as wel
 
 Here’s an example of how a typical MLM organization might compensate its associates:
 
-[cols="1*", border="3"]
-|===
-a|image::http://i.imgur.com/ODDXeKb.png[align="center"]
-|===
+image::http://i.imgur.com/ODDXeKb.png[align="center"]
 
 We see that depending on what level you’re at, how you’re compensated both for your direct sales but also for your passive income streams can vary greatly. As such, calculating compensation can be hairy to say the least.
 
@@ -39,10 +36,8 @@ If we were to migrate our data from a legacy sales compensation planner, it woul
 
 These are idealized dumps where I’ve synthesized what would normally be about a dozen csv files into 3 simply to show an example of how the data looks before and after Neo4j’s ETL process (LOAD CSV). When inspected by Excel (you could look at them with any other text editor as well), we’ll see a series of headers and rows with values that correspond to those headers. For example in the image below, we can see that a transaction with an ID of 1000000 has a value of 30 under the header of “salesRepID”, 22 under the header of “period”, 7780 under the header of “item1”, etc. etc. We’ll need to tell Neo4j how to interpret this information into a series of nodes and relationships instead of square “row and column” data.
 
-[cols="1*", border="3"]
-|===
-a|image::http://i.imgur.com/cSnwjpg.png[align="center"]
-|===
+image::http://i.imgur.com/cSnwjpg.png[align="center"]
+
 
 Before we actually load any data into Neo4j, it’s important to know what questions will be important to our business. In this case, we’re modeling a sales compensation tool. Our top queries might be something like:
 
@@ -61,10 +56,9 @@ When we know these questions, we can then build a model that makes it easy to an
 
 == Slashco Sales Comp. Application Data Model:
 
-[cols="1*", border="3"]
-|===
-a|image::http://i.imgur.com/2y4MfIX.png[align="center"]
-|===
+image::http://i.imgur.com/2y4MfIX.png[align="center"]
+
+== Setup! 
 
 //hide
 //setup
@@ -155,10 +149,8 @@ The scripts I’m using to build this blog post are located in https://github.co
 
 Now that we have a data model, let’s fire up Neo4j and pass in our import script. Found Here. Essentially what we’re doing is creating a few constraints and indexes, then telling Neo4j how to interpret our csv files into the above model.
 
-[cols="1*", border="3"]
-|===
-a|image::http://zippy.gfycat.com/IllinformedJaggedAlbertosaurus.gif[align="center"]
-|===
+image::http://zippy.gfycat.com/IllinformedJaggedAlbertosaurus.gif[align="center"]
+
 
 Now that we’ve loaded in all of our data, let’s open up our browser and start answering some of our top queries.
 
@@ -248,10 +240,8 @@ RETURN tc6, n6;
 ----
 //table
 
-[cols="1*", border="3"]
-|===
-a|image::http://zippy.gfycat.com/PleasedFalseFlatcoatretriever.gif[align="center"]
-|===
+image::http://zippy.gfycat.com/PleasedFalseFlatcoatretriever.gif[align="center"]
+
 
      1. Commission due to each rep, by period in accord with compensation rules
 
@@ -272,9 +262,6 @@ RETURN tc6, n6;
 ----
 //table
 
-[cols="1*", border="3"]
-|===
-a|image::http://zippy.gfycat.com/PolishedGreenCaterpillar.gif[align="center"]
-|===
+image::http://zippy.gfycat.com/PolishedGreenCaterpillar.gif[align="center"]
 
  --kvg
