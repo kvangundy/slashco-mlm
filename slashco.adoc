@@ -142,20 +142,20 @@ CREATE (t)-[:OCCURRED_IN]->(p);
 [source, cypher]
 ----
 LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/kvangundy/Slashco/master/transactionsSMALL.csv" as line
-WITH line,
-toINT(line.transactionID) as transID,
-toINT(line.item1) as itemID1,
-toINT(line.item2) as itemID2,
-toINT(line.item3) as itemID3
-MATCH
-(tx:Transaction {transactionID:transID}),
-(i1:Item {itemID:itemID1}),
-(i2:Item {itemID:itemID2}),
-(i3:Item {itemID:itemID3})
-CREATE
-(tx)-[:CONTAINS]->(i1),
-(tx)-[:CONTAINS]->(i2),
-(tx)-[:CONTAINS]->(i3);
+> WITH line,
+> toINT(line.transactionID) as transID,
+> toINT(line.item1) as itemID1,
+> toINT(line.item2) as itemID2,
+> toINT(line.item3) as itemID3
+> MATCH
+> (tx:Transaction {transactionID:transID}),
+> (i1:Item {itemID:itemID1}),
+> (i2:Item {itemID:itemID2}),
+> (i3:Item {itemID:itemID3})
+> CREATE
+> (tx)-[:CONTAINS]->(i1),
+> (tx)-[:CONTAINS]->(i2),
+> (tx)-[:CONTAINS]->(i3);
 ----
 
 //hide
