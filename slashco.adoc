@@ -71,7 +71,10 @@ The scripts I’m using to build this blog post are located in this git repo.
 
 Now that we have a data model, let’s fire up Neo4j and pass in our import script. Found Here. Essentially what we’re doing is creating a few constraints and indexes, then telling Neo4j how to interpret our csv files into the above model.
 
-import.gif
+[cols="1*", border="3"]
+|===
+http://zippy.gfycat.com/IllinformedJaggedAlbertosaurus.gif[align="center"]
+|===
 
 Now that we’ve loaded in all of our data, let’s open up our browser and start answering some of our top queries.
 
