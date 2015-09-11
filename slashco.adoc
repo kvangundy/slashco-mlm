@@ -46,19 +46,15 @@ a|image::http://i.imgur.com/cSnwjpg.png[align="center"]
 
 Before we actually load any data into Neo4j, it’s important to know what questions will be important to our business. In this case, we’re modeling a sales compensation tool. Our top queries might be something like:
 
-- 1. Commission due to each rep, by period in accord with compensation rules
-
-- 2. Commission due to each rep, annually in accord with compensation rules
-
-- 3. Sales Leaderboard
+ 1. Commission due to each rep, by period in accord with compensation rules
+ 2. Commission due to each rep, annually in accord with compensation rules
+ 3. Sales Leaderboard
         - Top Sales Rep by Total Sales
         - Top Sales Rep by Largest Deal
-        
-- 4. Global reporting
+ 4. Global reporting
          - Sales by period
          - Top selling items
-         
-- 5. Recommendations
+ 5. Recommendations
          - What items are most frequently sold together?
 
 When we know these questions, we can then build a model that makes it easy to answer those questions quickly and efficiently. As a general rule, if a piece of data is important to your use-case “make it physical” meaning, if you’re going to be traversing or filtering based on a specific bit of information make it a node or relationship. For example, Because we know that “deals” are important to our Sales Leaderboard, we’re going to make the idea of a deal (transaction) a specific type of node. We’ll then add information about that transaction, like when it happened, who owns it, and what items the deal contained. However, as a “last step” we’ll be doing some basic math operations on price, which is specific to that item— so we’ll keep that as a property.
