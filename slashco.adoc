@@ -217,7 +217,6 @@ We’ll work backwards:
 
 [source, cypher]
 ----
-//recommendation engine, what items are most frequently co-sold?
 MATCH path = (item:Item)-[:CONTAINS]-(:Transaction)-[:CONTAINS]-(item2:Item)
 WHERE id(item) > id(item2)
 WITH item, item2, count(distinct path) as instances
@@ -234,7 +233,6 @@ RETURN item.name, item2.name, instances;
 
 [source, cypher]
 ----
-//total sales volume by period descending
 MATCH (p:Period)-[:OCCURED_IN]-(t:Transaction)-[:CONTAINS]-(i:Item)
 WITH sum(i.price) as sales, p
 ORDER BY sales DESC
@@ -260,7 +258,6 @@ RETURN i.name as name, itemSales as count;
 
 [source, cypher]
 ----
-//Who has sold the most volume?
 MATCH (rep)-[:SOLD]-(txn)-[:CONTAINS]-(itm)
 WITH rep, round(sum(itm.price)) as volume
 ORDER BY volume DESC
@@ -271,7 +268,6 @@ RETURN rep.name as name, volume;
 
 [source, cypher]
 ----
-//Who closed the largest deal?
 MATCH (rep)-[:SOLD]-(txn)
 WITH rep, txn
 MATCH (txn)-[:CONTAINS]-(itm)
@@ -288,7 +284,6 @@ Due to the complexity of the queries, I decided to run them with each level of r
 
 [source, cypher]
 ----
-//level 6 comp
 MATCH (transaction)-[:CONTAINS]-(item)
 WITH sum(item.price*.05) as globalRoyalty
 MATCH (big_boss:Person {level:6})<-[r:REPORTS_TO*..]-(downStreamers)-[:SOLD]-(transaction)-[:CONTAINS]-(item)
@@ -310,7 +305,6 @@ This looks frighteningly similar to our last query, except we’ve added a short
 
 [source, cypher]
 ----
-//level 6 comp
 MATCH (transction)-[:CONTAINS]-(item),
 (transaction)-[:OCCURED_IN]-(p:Period {period:35})
 WITH sum(item.price*.05) as globalRoyalty
