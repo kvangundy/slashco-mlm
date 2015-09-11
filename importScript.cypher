@@ -38,7 +38,7 @@ CREATE (:Transaction {transactionID:transID});
 LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/kvangundy/Slashco/master/transactions.csv" as line
 WITH line, toINT(line.transactionID) as transID, toINT(line.period) as period
 MATCH (t:Transaction {transactionID:transID}), (p:Period {period:period})
-CREATE (t)-[:OCCURED_IN]->(p);
+CREATE (t)-[:OCCURRED_IN]->(p);
 //
 LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/kvangundy/Slashco/master/transactions.csv" as line
 WITH line,
