@@ -290,9 +290,4 @@ RETURN tc6, n6;
 a|image::http://zippy.gfycat.com/PolishedGreenCaterpillar.gif[align="center"]
 |===
 
-[cols="1*", border="3"]
-|===
-a|image::http://i.imgur.com/W3y3N8bm.png[align="center"]
-|===
-
  --kvg
