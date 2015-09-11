@@ -70,16 +70,15 @@ a|image::http://i.imgur.com/2y4MfIX.png[align="center"]
 //setup
 [source, cypher]
 ----
-CREATE CONSTRAINT ON (p:Person) ASSERT p.employeeID IS UNIQUE;
-CREATE CONSTRAINT ON (i:Item) ASSERT i.itemID IS UNIQUE;
-CREATE CONSTRAINT ON (t:Transaction) ASSERT t.transactionID IS UNIQUE;
-CREATE CONSTRAINT ON (p:Period) ASSERT p.period IS UNIQUE;
-CREATE INDEX ON :Item(price);
-CREATE INDEX ON :Item(wholesalePrice);
-//
 WITH range(1,52) as periods
 FOREACH (period IN periods |
   MERGE (p:Period {period:period}));
+----
+
+//hide
+//setup
+[source, cypher]
+----
 //
 MATCH (p:Period)
 WITH p
@@ -89,29 +88,59 @@ FOREACH (i in RANGE(0,length(periods)-2) |
   FOREACH(p1 in [periods[i]] |
       FOREACH(p2 in [periods[i+1]] |
           CREATE UNIQUE (p1)-[:NEXT]->(p2))));
-//
+----
+
+//hide
+//setup
+[source, cypher]
+----
 LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/kvangundy/Slashco/master/itemSMALL.csv" as line
 WITH line, toFLOAT(line.price) as price, toINT(line.item) as itemID, toFLOAT(line.kicker) as kick, toFLOAT(line.wprice) as wholesale
 CREATE (:Item {itemID:itemID, name:line.name, price:price, kicker:kick, wholesalePrice:wholesale});
-//
+----
+
+//hide
+//setup
+[source, cypher]
+----
 LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/kvangundy/Slashco/master/employees.csv" as line
 WITH line, toINT(line.employeeID) as empID
 CREATE (:Person {employeeID:empID, name:line.name});
-//
+----
+
+//hide
+//setup
+[source, cypher]
+----
 LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/kvangundy/Slashco/master/employees.csv" as line
 WITH line, toINT(line.employeeID) as empID, toINT(line.reportsTo) as reportsToID
 MATCH (sub:Person {employeeID:empID}), (boss:Person {employeeID:reportsToID})
 MERGE (sub)-[:REPORTS_TO]->(boss);
-//
+----
+
+//hide
+//setup
+[source, cypher]
+----
 LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/kvangundy/Slashco/master/transactionsSMALL.csv" as line
 WITH line, toINT(line.transactionID) as transID
 CREATE (:Transaction {transactionID:transID});
-//
+----
+
+//hide
+//setup
+[source, cypher]
+----
 LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/kvangundy/Slashco/master/transactionsSMALL.csv" as line
 WITH line, toINT(line.transactionID) as transID, toINT(line.period) as period
 MATCH (t:Transaction {transactionID:transID}), (p:Period {period:period})
 CREATE (t)-[:OCCURRED_IN]->(p);
-//
+----
+
+//hide
+//setup
+[source, cypher]
+----
 LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/kvangundy/Slashco/master/transactionsSMALL.csv" as line
 WITH line,
 toINT(line.transactionID) as transID,
@@ -127,7 +156,12 @@ CREATE
 (tx)-[:CONTAINS]->(i1),
 (tx)-[:CONTAINS]->(i2),
 (tx)-[:CONTAINS]->(i3);
-//
+----
+
+//hide
+//setup
+[source, cypher]
+----
 LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/kvangundy/Slashco/master/transactionsSMALL.csv" as line
 WITH line,
 toINT(line.transactionID) as transID,
@@ -136,7 +170,12 @@ MATCH (rep:Person {employeeID:repID}),
 (tx:Transaction {transactionID:transID})
 CREATE
 (rep)-[:SOLD]->(tx);
-//
+----
+
+//hide
+//setup
+[source, cypher]
+----
 MATCH (target:Person)<-[r:REPORTS_TO*..]-(e)
 WITH target, count(e) as totalReports
 SET target.reportsCount = totalReports
