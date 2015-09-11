@@ -1,0 +1,137 @@
+Compensation planning and calculation in complex sales organizations can be incredibly taxing on traditional databases. Sufficiently large organizations often will end up batching these processes over night or into a weekly job Let’s take a look at Slashco, a multi-level marketing [s]organization[/s] “guild" in the World of Warcraft.
+
+In this example, we have sales-mages who will both sell products directly as well as recruit people to also sell products on behalf of Slashco. I created a sample compensation model based on popular multi-level marketing model. It comprises of four income streams:
+
+- Direct Sales: For each item a team-member sells directly, they earn a commission.
+- Downstream Royalty: A percentage earned of the retail price of items sold by people “within their downstream,” meaning those that they have recruited to work for Slashco and by extension those who their recruits have recruited
+- Wholesale Profit: A percentage earned on the goods sold to those “within their downstream” (these goods will then be re-sold to consumers
+- Global Sales Royalty: A percentage of all sales made by those within Slashco. Revenue sharing.
+
+Here’s an example of how a typical MLM organization might compensate its associates:
+
+We see that depending on what level you’re at, how you’re compensated both for your direct sales but also for your passive income streams can vary greatly. As such, calculating compensation can be hairy to say the least.
+
+If we were to migrate our data from a legacy sales compensation planner, it would be best to push all of it out into a series of .csv files. In the database world, comma separated value files are often the lowest common denominator—thus for 90% of the projects I work on, I start there.  Let’s pretend we have pushed our old MySQL data into a series of 3 .csv files:
+
+- employees.csv
+
+- item.csv
+
+- transactions.csv
+
+These are idealized dumps where I’ve synthesized what would normally be about a dozen csv files into 3 simply to show an example of how the data looks before and after Neo4j’s ETL process (LOAD CSV). When inspected by Excel (you could look at them with any other text editor as well), we’ll see a series of headers and rows with values that correspond to those headers. For example in the image below, we can see that a transaction with an ID of 1000000 has a value of 30 under the header of “salesRepID”, 22 under the header of “period”, 7780 under the header of “item1”, etc. etc. We’ll need to tell Neo4j how to interpret this information into a series of nodes and relationships instead of square “row and column” data.
+
+Before we actually load any data into Neo4j, it’s important to know what questions will be important to our business. In this case, we’re modeling a sales compensation tool. Our top queries might be something like:
+
+- Commission due to each rep, by period in accord with compensation rules
+- Commission due to each rep, annually in accord with compensation rules
+- Sales Leaderboard
+    - Top Sales Rep by Total Sales
+    - Top Sales Rep by Largest Deal
+- Global reporting
+    - Sales by period
+    - Top selling items
+- Recommendations
+    - What items are most frequently sold together?
+
+When we know these questions, we can then build a model that makes it easy to answer those questions quickly and efficiently. As a general rule, if a piece of data is important to your use-case “make it physical” meaning, if you’re going to be traversing or filtering based on a specific bit of information make it a node or relationship. For example, Because we know that “deals” are important to our Sales Leaderboard, we’re going to make the idea of a deal (transaction) a specific type of node. We’ll then add information about that transaction, like when it happened, who owns it, and what items the deal contained. However, as a “last step” we’ll be doing some basic math operations on price, which is specific to that item— so we’ll keep that as a property.
+
+Slashco Sales Comp. Application Data Model:
+
+The scripts I’m using to build this blog post are located in this git repo.
+
+Now that we have a data model, let’s fire up Neo4j and pass in our import script. Found Here. Essentially what we’re doing is creating a few constraints and indexes, then telling Neo4j how to interpret our csv files into the above model.
+
+import.gif
+
+Now that we’ve loaded in all of our data, let’s open up our browser and start answering some of our top queries.
+
+explode.gif
+We’ll work backwards:
+
+     5. Recommendations
+
+    - What items are most frequently sold together?
+
+//recommendation engine, what items are most frequently co-sold?
+MATCH path = (item:Item)-[:CONTAINS]-(:Transaction)-[:CONTAINS]-(item2:Item)
+WHERE id(item) > id(item2)
+WITH item, item2, count(distinct path) as instances
+ORDER BY instances DESC
+LIMIT 3
+RETURN item.name, item2.name, instances;
+
+     4. Global reporting
+
+    - Sales by period
+    - Top selling items
+
+//total sales volume by period descending
+MATCH (p:Period)-[:OCCURED_IN]-(t:Transaction)-[:CONTAINS]-(i:Item)
+WITH sum(i.price) as sales, p
+ORDER BY sales DESC
+LIMIT 10
+RETURN sales, p.period;
+
+MATCH (t:Transaction)-[:CONTAINS]-(i:Item)
+WITH count(distinct(t)) as itemSales, i
+ORDER BY itemSales DESC
+LIMIT 5
+RETURN i.name as name, itemSales as count;
+
+
+     3. Sales Leaderboard
+
+    - Top Sales Rep by Total Sales Volume
+    - Top Sales Rep by Largest Deal
+
+//Who has sold the most volume?
+MATCH (rep)-[:SOLD]-(txn)-[:CONTAINS]-(itm)
+WITH rep, round(sum(itm.price)) as volume
+ORDER BY volume DESC
+LIMIT 5
+RETURN rep.name as name, volume;
+
+//Who closed the largest deal?
+MATCH (rep)-[:SOLD]-(txn)
+WITH rep, txn
+MATCH (txn)-[:CONTAINS]-(itm)
+WITH rep, txn, round(sum(itm.price)) as dealSize
+ORDER BY dealSize DESC
+LIMIT 5
+RETURN rep.name as name, txn.transactionID as transction, dealSize as `deal size`;
+
+     2. Commission due to each rep, annually in accord with compensation rules
+
+Due to the complexity of the queries, I decided to run them with each level of rep separated out into its own query, however they all follow the basic form of the “what do I do with all this gold” query:
+
+//level 6 comp
+MATCH (transaction)-[:CONTAINS]-(item)
+WITH sum(item.price*.05) as globalRoyalty
+MATCH (big_boss:Person {level:6})<-[r:REPORTS_TO*..]-(downStreamers)-[:SOLD]-(transaction)-[:CONTAINS]-(item)
+WITH sum(item.price*.1)+sum(item.wholesalePrice*.5) + globalRoyalty as downStreamGlobal6, big_boss
+MATCH (boss)-[:SOLD]-(transaction)-[:CONTAINS]-(item)
+WITH sum(item.price*.65) + downStreamGlobal6 as tc6, big_boss.name as n6
+RETURN tc6, n6;
+
+comp1.gif
+
+     1. Commission due to each rep, by period in accord with compensation rules
+
+This looks frighteningly similar to our last query, except we’ve added a short pattern (transaction)-[:OCCURRED_IN]-(period {period:35}) which will filter out all transactions that occurred in periods that are not the 35th.
+
+//level 6 comp
+MATCH (transction)-[:CONTAINS]-(item),
+(transaction)-[:OCCURED_IN]-(p:Period {period:35})
+WITH sum(item.price*.05) as globalRoyalty
+MATCH (big_boss:Person {level:6})<-[r:REPORTS_TO*..]-(downStreamers)-[:SOLD]-(transction)-[:CONTAINS]-(item),
+(transaction)-[:OCCURED_IN]-(p:Period {period:35})
+WITH sum(item.price*.1)+sum(item.wholesalePrice*.5) + globalRoyalty as downStreamGlobal6, big_boss
+MATCH (boss)-[:SOLD]-(transction)-[:CONTAINS]-(item),
+(transaction)-[:OCCURED_IN]-(p:Period {period:35})
+WITH sum(item.price*.65) + downStreamGlobal6 as tc6, big_boss.name as n6
+RETURN tc6, n6;
+
+comp2.gif
+
+ //kvg
